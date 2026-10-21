@@ -1,0 +1,36 @@
+name: Python checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile Python files
+        run: python -m compileall -q bot.py
+      - name: Validate seeded questions
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          questions = json.loads(Path("questions.json").read_text(encoding="utf-8"))
+          assert questions, "questions.json must contain at least one question"
+          for i, q in enumerate(questions, 1):
+              assert isinstance(q.get("question"), str) and q["question"].strip(), f"Question {i} has no prompt"
+              assert isinstance(q.get("options"), list) and len(q["options"]) == 4, f"Question {i} must have four options"
+              assert all(isinstance(option, str) and option.strip() for option in q["options"]), f"Question {i} has an empty option"
+              assert isinstance(q.get("answer"), int) and 0 <= q["answer"] < 4, f"Question {i} has an invalid answer index"
+          print(f"Validated {len(questions)} questions.")
+          PY
