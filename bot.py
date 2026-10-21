@@ -195,22 +195,11 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
-def get_question(question_id: int | None = None, exclude_daily_date: str | None = None) -> dict[str, Any] | None:
+def get_question(question_id: int | None = None) -> dict[str, Any] | None:
     with connect_db() as conn:
         if question_id is not None:
             row = conn.execute(
                 "SELECT * FROM questions WHERE id = ? AND active = 1", (question_id,)
-            ).fetchone()
-        elif exclude_daily_date:
-            row = conn.execute(
-                """
-                SELECT q.* FROM questions q
-                WHERE q.active = 1 AND q.id NOT IN (
-                    SELECT question_id FROM answers WHERE quiz_date = ?
-                )
-                ORDER BY RANDOM() LIMIT 1
-                """,
-                (exclude_daily_date,),
             ).fetchone()
         else:
             row = conn.execute(
@@ -218,6 +207,21 @@ def get_question(question_id: int | None = None, exclude_daily_date: str | None 
             ).fetchone()
     if not row:
         return None
+    item = dict(row)
+    item["options"] = json.loads(item.pop("options_json"))
+    return item
+
+
+def get_daily_question(day: str) -> dict[str, Any] | None:
+    """Return the same active question to every player on a given UTC date."""
+    with connect_db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM questions WHERE active = 1 ORDER BY id"
+        ).fetchall()
+    if not rows:
+        return None
+    day_number = int(day.replace("-", ""))
+    row = rows[day_number % len(rows)]
     item = dict(row)
     item["options"] = json.loads(item.pop("options_json"))
     return item
@@ -242,7 +246,7 @@ async def send_question(update: Update, context: ContextTypes.DEFAULT_TYPE, dail
                 f"អ្នកបានឆ្លើយសំណួរប្រចាំថ្ងៃរួចហើយ ({result})។ ត្រឡប់មកវិញថ្ងៃស្អែក! 🌞"
             )
             return
-        question = get_question(exclude_daily_date=today)
+        question = get_daily_question(today)
     else:
         question = get_question()
         if question:
