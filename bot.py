@@ -44,7 +44,7 @@ ADD_QUESTION, ADD_OPTION_1, ADD_OPTION_2, ADD_OPTION_3, ADD_OPTION_4, ADD_ANSWER
 WELCOME = (
     "សូមស្វាគមន៍មកវេបសាយធំបំផុត ងាយស្រួលលេង📲 និងគួរឱ្យទុកចិត្តបំផុតនៅកម្ពុជា🔥\n\n"
     "សេវាកម្ម២៤ម៉ោង\n\n"
-    "https://t.me/galaxy99_kh"
+    '<a href="https://t.me/galaxy99_kh">https://t.me/galaxy99_kh</a>'
 )
 
 
