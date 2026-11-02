@@ -168,7 +168,15 @@ def is_admin(update: Update) -> bool:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     register_user(update)
     if update.message:
-        await update.message.reply_text(WELCOME, parse_mode=ParseMode.HTML)
+        keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("SEND MESSAGE", url="https://t.me/galaxy99_kh")]]
+        )
+        await update.message.reply_text(
+            WELCOME,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
+        )
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
